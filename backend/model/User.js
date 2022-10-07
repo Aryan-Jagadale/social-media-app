@@ -45,8 +45,9 @@ const UserSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  resetPasswordToken:String,
+  resetPasswordExpire:Date,
 
-  
 });
 
 UserSchema.pre("save", async function (next) {
@@ -64,6 +65,15 @@ UserSchema.methods.matchPassword = async function (password) {
 UserSchema.methods.generateToken = function () {
   return jwt.sign({ _id: this._id }, process.env.JWT_SECRET);
 };
+
+UserSchema.methods.getResetPasswordToken = function (){
+  const resetToken = crypto.randomBytes(20).toString("hex")
+  console.log(resetToken);
+  this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;//10min
+
+  return resetToken
+}
 
 
 module.exports = mongoose.model("User", UserSchema);
